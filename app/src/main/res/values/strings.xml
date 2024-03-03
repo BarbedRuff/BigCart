@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Big Cart</string>
+    <string name="title_activity_auth">AuthActivity</string>
+    <string name="title_activity_login">LoginActivity</string>
+    <string name="title_activity_reg">RegActivity</string>
+    <string name="title_activity_market">MarketActivity</string>
+    <string name="title_activity_phone">PhoneActivity</string>
+    <string name="title_activity_cart">CartActivity</string>
+</resources>
