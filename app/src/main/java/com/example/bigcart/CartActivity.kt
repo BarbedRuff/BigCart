@@ -70,14 +70,14 @@ class CartActivity : ComponentActivity() {
                                             startActivity(it)
                                         }
                                     }
-                                    .padding(start = 17.dp, top = 31.dp, bottom = 31.dp),
+                                    .padding(start = 17.dp, top = 15.dp, bottom = 15.dp),
                                 imageVector = Icons.Filled.ArrowBack,
                                 contentDescription = "Back",
                                 tint = Color.Black
                             )
                             Text(
                                 modifier = Modifier
-                                    .padding(top = 31.dp, bottom = 31.dp),
+                                    .padding(top = 15.dp, bottom = 15.dp),
                                 text = "Shopping Cart",
                                 color = Color.Black,
                                 fontSize = 18.sp,

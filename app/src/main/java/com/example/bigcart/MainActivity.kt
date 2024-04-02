@@ -2,7 +2,9 @@ package com.example.bigcart
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.os.AsyncTask
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -20,7 +22,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -42,7 +43,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.view.WindowCompat
 import com.example.bigcart.ui.theme.BigCartTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.draw.clip
@@ -50,9 +50,11 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.Async
 
 @OptIn(ExperimentalFoundationApi::class)
 class MainActivity : ComponentActivity() {
+    private val gParser = GroceryParser()
     private val pageTitle = listOf(
         "Welcome to\nBig Cart",
         "Buy Quality \n" + "Dairy Products",
@@ -68,6 +70,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AsyncTask.execute {
+            gParser.initDatabase(apiKey=this.resources.getString(R.string.apiKey),
+                apiHost=this.resources.getString(R.string.apiHost))
+        }
         var auth: FirebaseAuth =  Firebase.auth
         if(auth.currentUser != null) {
             Intent(applicationContext,MarketActivity::class.java).also {

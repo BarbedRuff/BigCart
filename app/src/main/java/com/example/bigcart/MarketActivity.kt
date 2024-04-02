@@ -5,8 +5,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,21 +18,37 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.bigcart.ui.theme.BigCartTheme
@@ -50,15 +68,19 @@ class MarketActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier
                         .fillMaxSize(),
-                    color = Color(0xFFF4F5F9)
+                    color = Color.White
                 ) {
                     val pagerState = rememberPagerState(pageCount = { 3 })
                     val coroutineScope = rememberCoroutineScope()
-                    HorizontalPager(state = pagerState) {
+                    HorizontalPager(
+                        modifier = Modifier
+                            .wrapContentHeight(align=Alignment.Top),
+                        state = pagerState
+                    ) {
                         when (it) {
-                            0 -> {Text(text = "Home")}
+                            0 -> {Home()}
                             1 -> {Text(text = "Person")}
-                            2 -> {Text(text = "Love")}
+                            2 -> {Text(text = "Favourite")}
                         }
                     }
                     Row(
@@ -143,6 +165,61 @@ class MarketActivity : ComponentActivity() {
                 tint = if (index == tab.currentPage) Color.Black else Color(0xFF868889)
             )
         }
+    }
+
+    @Composable
+    fun Home(){
+        Column(
+
+        ){
+            Search()
+            Poster()
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun Search(){
+        var text = remember { mutableStateOf("") }
+        TextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 17.dp, end = 17.dp, top = 14.dp),
+            singleLine = true,
+            shape = RoundedCornerShape(5.dp),
+            colors = TextFieldDefaults.textFieldColors(
+                containerColor = Color(0xFFF4F5F9),
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+                errorIndicatorColor = Color.Red,
+                cursorColor = Color.Black
+            ),
+            leadingIcon = {Icon(imageVector = Icons.Filled.Search, "Search", tint = Color(0xFF868889))},
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+            placeholder = {
+                Text(
+                    text = "Search keywords..",
+                    color = Color(0xFF868889),
+                    fontWeight = FontWeight.Medium
+                )
+            },
+            value = text.value,
+            onValueChange = { text.value = it }
+        )
+    }
+
+    @Composable
+    fun Poster(){
+        Image(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 10.dp, start = 17.dp, end = 17.dp),
+            painter = painterResource(id = R.drawable.poster),
+            contentScale = ContentScale.FillWidth,
+            alignment = Alignment.Center,
+            contentDescription = "poster"
+        )
     }
 }
 
