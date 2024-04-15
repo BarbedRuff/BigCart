@@ -21,6 +21,11 @@ class GroceryParser {
                     "\tlabel STRING NOT NULL,\n" +
                     "\timage STRING\n" +
                     ");")
+            sqLiteDatabase.execSQL(
+                "CREATE TABLE favourite (\n" +
+                        "\tfood_id STRING PRIMARY KEY\n" +
+                        ");"
+            )
             parser(apiKey, apiHost, sqLiteDatabase)
         }
     }
@@ -44,7 +49,12 @@ class GroceryParser {
                 var insertValues = ContentValues()
                 insertValues.put("food_id", food.get("foodId").toString())
                 insertValues.put("image", if(food.has("image")) food.get("image").toString() else "")
-                insertValues.put("label", food.get("label").toString())
+                val label = food.get("label").toString()
+                insertValues.put(
+                    "label",
+                    if(label.length > 10 ) label.substring(0, 10) + "..." else label
+                )
+                Log.d("MEOW", label);
                 sqLiteDatabase.insert("products", null, insertValues)
             }
             url = JSONObject(JSONObject(jObject.get("_links").toString()).get("next").toString()).get("href").toString()

@@ -1,7 +1,10 @@
 package com.example.bigcart
 
 import android.content.Intent
+import android.database.Cursor
+import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -10,18 +13,22 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
@@ -41,25 +48,26 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil.compose.rememberAsyncImagePainter
 import com.example.bigcart.ui.theme.BigCartTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.launch
 
+
 @OptIn(ExperimentalFoundationApi::class)
 class MarketActivity : ComponentActivity() {
     var auth: FirebaseAuth = Firebase.auth
+    var sqLiteDatabase = SQLiteDatabase.openOrCreateDatabase("/data/data/com.example.bigcart/databases/grocery.db", null)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         var auth: FirebaseAuth = Firebase.auth
@@ -80,7 +88,7 @@ class MarketActivity : ComponentActivity() {
                         when (it) {
                             0 -> {Home()}
                             1 -> {Text(text = "Person")}
-                            2 -> {Text(text = "Favourite")}
+                            2 -> {Favourite()}
                         }
                     }
                     Row(
@@ -149,7 +157,7 @@ class MarketActivity : ComponentActivity() {
         index: Int,
         paddingStart: Dp = 0.dp,
         paddingEnd: Dp = 0.dp,
-        onClick: () -> Unit
+        onClick: () -> Unit,
     ) {
         IconButton(
             onClick = onClick,
@@ -175,6 +183,43 @@ class MarketActivity : ComponentActivity() {
             Search()
             Poster()
         }
+    }
+
+    @Composable
+    fun Favourite(){
+        var favourites = getFavourites()
+        if (favourites == null){
+
+        }
+        else{
+            Column(
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .fillMaxWidth()
+                    .padding(bottom=60.dp)
+            ){
+                for(foodId in favourites){
+                    var item = getItemData(foodId)
+                    if (item != null) {
+                        Card(item[0], item[1])
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun Card(label: String, url:String){
+        Text(
+            text = label,
+            fontSize = 20.sp,
+        )
+        Image(
+            painter = if(url != "") rememberAsyncImagePainter(url) else painterResource(id = R.drawable.cart),
+            contentDescription = null,
+            modifier = Modifier.size(128.dp)
+        )
+        Spacer(modifier = Modifier.height(30.dp))
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -220,6 +265,33 @@ class MarketActivity : ComponentActivity() {
             alignment = Alignment.Center,
             contentDescription = "poster"
         )
+    }
+
+    private fun getFavourites(): MutableList<String>? {
+        var favourites = mutableListOf<String>()
+        val cursor: Cursor = sqLiteDatabase.query(
+            "favourite", arrayOf<String>("food_id"),
+            null, null, null, null, null
+        )
+        if (cursor != null && cursor.count != 0) {
+            cursor.moveToFirst()
+            do {
+                favourites.add(cursor.getString(0))
+            } while (cursor.moveToNext())
+        }
+        return if(favourites.size != 0) favourites else null
+    }
+
+    private fun getItemData(foodId: String): MutableList<String>? {
+        val cursor = sqLiteDatabase.query(
+            "products", arrayOf("label", "image"),
+            "food_id=\"$foodId\"", null, null, null, null
+        )
+        if (cursor != null && cursor.count != 0) {
+            cursor.moveToFirst()
+            return mutableListOf(cursor.getString(0), cursor.getString(1))
+        }
+        return null
     }
 }
 
