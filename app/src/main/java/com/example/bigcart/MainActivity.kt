@@ -53,7 +53,6 @@ import org.jetbrains.annotations.Async
 
 @OptIn(ExperimentalFoundationApi::class)
 class MainActivity : ComponentActivity() {
-    private val gParser = GroceryParser()
     private val pageTitle = listOf(
         "Welcome to\nBig Cart",
         "Buy Quality \n" + "Dairy Products",
@@ -69,15 +68,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        AsyncTask.execute {
-            gParser.initDatabase(apiKey=this.resources.getString(R.string.apiKey),
-                apiHost=this.resources.getString(R.string.apiHost))
-        }
         var auth: FirebaseAuth =  Firebase.auth
         if(auth.currentUser != null) {
             Intent(applicationContext,MarketActivity::class.java).also {
                 startActivity(it)
             }
+            finish()
         }
         setContent {
             MainPreview()
