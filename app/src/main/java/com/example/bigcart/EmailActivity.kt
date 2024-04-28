@@ -78,7 +78,7 @@ class EmailActivity : ComponentActivity() {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 63.dp),
+                                .padding(top = 26.dp),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Icon(
@@ -87,6 +87,7 @@ class EmailActivity : ComponentActivity() {
                                         Intent(applicationContext,AuthActivity::class.java).also {
                                             startActivity(it)
                                         }
+                                        finish()
                                     }
                                     .padding(start = 17.dp),
                                 imageVector = Icons.Filled.ArrowBack,

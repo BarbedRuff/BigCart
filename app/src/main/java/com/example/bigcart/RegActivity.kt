@@ -245,6 +245,7 @@ class RegActivity : ComponentActivity() {
                                 Intent(applicationContext, MarketActivity::class.java).also {
                                     startActivity(it)
                                 }
+                                finish()
                             } else {
                                 Log.d("Meow", "createUserWithEmail:failure", task.exception)
                             }
