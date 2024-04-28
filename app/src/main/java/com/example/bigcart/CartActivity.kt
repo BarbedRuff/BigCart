@@ -66,9 +66,7 @@ class CartActivity : ComponentActivity() {
                             Icon(
                                 modifier = Modifier
                                     .clickable {
-                                        Intent(applicationContext,MarketActivity::class.java).also {
-                                            startActivity(it)
-                                        }
+                                        finish()
                                     }
                                     .padding(start = 17.dp, top = 15.dp, bottom = 15.dp),
                                 imageVector = Icons.Filled.ArrowBack,
@@ -127,9 +125,7 @@ class CartActivity : ComponentActivity() {
     fun GradientButton() {
         Button(
             onClick = {
-                Intent(applicationContext,MarketActivity::class.java).also {
-                    startActivity(it)
-                }
+                finish()
             },
             modifier = Modifier
                 .wrapContentHeight(Alignment.Bottom)
