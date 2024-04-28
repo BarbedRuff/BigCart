@@ -3,7 +3,6 @@ package com.example.bigcart
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -279,6 +278,12 @@ class MarketActivity : ComponentActivity() {
                                         Modifier.weight(1f)
                                     )
                                 }
+                                else{
+                                    Spacer(modifier = Modifier.width(17.dp))
+                                    Box(
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
                             }
                             Spacer(modifier = Modifier.height(17.dp))
                         }
@@ -348,7 +353,6 @@ class MarketActivity : ComponentActivity() {
                     val iter = favourite.iterator()
                     items(ceil(favourite!!.size.toDouble() / 2).toInt()) { i ->
                         var food_id = iter.next()
-                        Log.d("MEEEE", food_id)
                         Row {
                             Food_Card(
                                 foods[food_id]!!.label,
@@ -362,6 +366,12 @@ class MarketActivity : ComponentActivity() {
                                     foods[food_id]!!.label,
                                     foods[food_id]!!.img,
                                     Modifier.weight(1f)
+                                )
+                            }
+                            else{
+                                Spacer(modifier = Modifier.width(17.dp))
+                                Box(
+                                    modifier = Modifier.weight(1f)
                                 )
                             }
                         }

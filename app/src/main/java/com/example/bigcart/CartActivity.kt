@@ -146,7 +146,7 @@ class CartActivity : ComponentActivity() {
                         Brush.horizontalGradient(
                             listOf(Color(0xFFAEDC81), Color(0xFF6CC51D))
                         )
-                    ),
+                    )
             ) {
                 Text(
                     modifier = Modifier
