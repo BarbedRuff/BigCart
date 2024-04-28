@@ -126,6 +126,7 @@ class LoginActivity : ComponentActivity() {
                     .clickable {
                         Intent(applicationContext, RegActivity::class.java).also {
                             startActivity(it)
+                            finish()
                         }
                     },
                 horizontalArrangement = Arrangement.Center
@@ -255,10 +256,10 @@ class LoginActivity : ComponentActivity() {
                     auth.signInWithEmailAndPassword(email.value, password.value)
                         .addOnCompleteListener(this) { task ->
                             if (task.isSuccessful) {
-                                Intent(applicationContext,MarketActivity::class.java).also {
+                                Intent(applicationContext, MarketActivity::class.java).also {
+                                    it.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                                     startActivity(it)
                                 }
-                                finish()
                             } else {
                                 Log.d("Meow", "createUserWithEmail:failure", task.exception)
                             }

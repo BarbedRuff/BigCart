@@ -35,6 +35,7 @@ import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -204,16 +205,16 @@ class MarketActivity : ComponentActivity() {
                     contentDescription = "profile",
                 )
             }
+            Button(onClick = {
+                auth.signOut()
+                Intent(applicationContext,MainActivity::class.java).also {
+                    startActivity(it)
+                }
+                finish()
+            }) {
+                Text(text="Exit")
+            }
         }
-//        Button(onClick = {
-//            auth.signOut()
-//            Intent(applicationContext,MainActivity::class.java).also {
-//                startActivity(it)
-//            }
-//            finish()
-//        }) {
-//            Text(text="Exit")
-//        }
     }
 
     @Composable
@@ -300,7 +301,8 @@ class MarketActivity : ComponentActivity() {
                 .data(image)
                 .size(coil.size.Size.ORIGINAL)
                 .crossfade(true)
-                .build()
+                .build(),
+            placeholder = painterResource(R.drawable.cart),
         )
         Card(
             modifier = modifier

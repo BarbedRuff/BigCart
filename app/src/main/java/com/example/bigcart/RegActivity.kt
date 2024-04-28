@@ -127,6 +127,7 @@ class RegActivity : ComponentActivity() {
                     .clickable {
                         Intent(applicationContext, LoginActivity::class.java).also {
                             startActivity(it)
+                            finish()
                         }
                     },
                 horizontalArrangement = Arrangement.Center
@@ -243,9 +244,9 @@ class RegActivity : ComponentActivity() {
                         .addOnCompleteListener(this) { task ->
                             if (task.isSuccessful) {
                                 Intent(applicationContext, MarketActivity::class.java).also {
+                                    it.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                                     startActivity(it)
                                 }
-                                finish()
                             } else {
                                 Log.d("Meow", "createUserWithEmail:failure", task.exception)
                             }

@@ -2,7 +2,6 @@ package com.example.bigcart
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.os.AsyncTask
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -49,7 +48,6 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.launch
-import org.jetbrains.annotations.Async
 
 @OptIn(ExperimentalFoundationApi::class)
 class MainActivity : ComponentActivity() {
