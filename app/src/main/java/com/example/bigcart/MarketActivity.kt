@@ -1,7 +1,9 @@
 package com.example.bigcart
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -25,10 +27,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -52,6 +53,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -60,12 +62,20 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.ceil
+import coil.ImageLoader
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
+import com.example.bigcart.favourite.FavouriteViewModel
+import com.example.bigcart.food.Food
+import com.example.bigcart.food.FoodViewModel
 import com.example.bigcart.ui.theme.BigCartTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -79,8 +89,14 @@ class MarketActivity : ComponentActivity() {
     private var token: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val viewModel: FoodViewModel by this.viewModels()
+        val foodView: FoodViewModel by this.viewModels()
+        val favouriteView: FavouriteViewModel by this.viewModels()
+        token = this.resources.getString(R.string.token)
         setContent {
+            foodView.fetchFood(token!!)
+            favouriteView.fetchFavourite(auth.uid.toString(), token!!)
+            val foods by foodView.food.observeAsState()
+            val favourite by favouriteView.favourite.observeAsState()
             BigCartTheme {
                 Surface(
                     modifier = Modifier
@@ -95,9 +111,9 @@ class MarketActivity : ComponentActivity() {
                         state = pagerState
                     ) {
                         when (it) {
-                            0 -> {Home(viewModel)}
-                            1 -> {Text(text = "Person")}
-                            2 -> {Favourite()}
+                            0 -> {Home(foods)}
+                            1 -> {Profile(auth)}
+                            2 -> {Favourite(foods, favourite)}
                         }
                     }
                     Row(
@@ -158,6 +174,49 @@ class MarketActivity : ComponentActivity() {
             }
         }
     }
+
+    @Composable
+    fun Profile(auth: FirebaseAuth) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF4F5F9))
+        ){
+            Box(
+                modifier = Modifier
+                    .height(150.dp)
+                    .fillMaxWidth()
+                    .background(Color(0xFFF4F5F9))
+            ){
+                Box(
+                    modifier = Modifier
+                        .height(108.dp)
+                        .fillMaxWidth()
+                        .background(Color.White)
+                )
+//                if(auth.currentUser.photoUrl != )
+                Image(
+                    modifier = Modifier
+                        .padding(top = 33.dp)
+                        .align(Alignment.Center)
+                        .size(114.dp)
+                        .clip(CircleShape),
+                    painter = painterResource(id = R.drawable.cart),
+                    contentDescription = "profile",
+                )
+            }
+        }
+//        Button(onClick = {
+//            auth.signOut()
+//            Intent(applicationContext,MainActivity::class.java).also {
+//                startActivity(it)
+//            }
+//            finish()
+//        }) {
+//            Text(text="Exit")
+//        }
+    }
+
     @Composable
     fun CustomIconButton(
         imageVector: ImageVector,
@@ -179,43 +238,44 @@ class MarketActivity : ComponentActivity() {
                     .size(30.dp),
                 imageVector = imageVector,
                 contentDescription = contentDescription,
-                tint = if (index == tab.currentPage) Color.Black else Color(0xFF868889)
+                tint = if (index == tab.currentPage) Color(0xFF6CC51D) else Color(0xFF868889)
             )
         }
     }
 
     @Composable
-    fun Home(viewModel: FoodViewModel) {
-        val foods by viewModel.food.observeAsState()
-        viewModel.fetchFood()
-
+    fun Home(foods: Map<String, Food>?) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
         ) {
             Search()
-            Poster()
             Column(
-                modifier = Modifier.padding()
+                modifier = Modifier
+                    .padding(top = 10.dp, start = 17.dp, end = 17.dp, bottom = 46.dp)
+                    .fillMaxSize()
             ){
                 if (foods == null) {
-                    Text(text = "Loading...")
+                    Poster()
+                    LoadingGif()
                 } else {
-                    LazyColumn(
-                        modifier = Modifier.padding(start= 17.dp, end=17.dp, bottom=46.dp, top=17.dp)
-                    ) {
-                        items(foods!!.results.size / 2) { i ->
+                    LazyColumn {
+                        items(1){
+                            Poster()
+                        }
+                        val foodArr = foods!!.values.toList()
+                        items(ceil(foodArr!!.size.toDouble() / 2).toInt()) { i ->
                             Row{
                                 Food_Card(
-                                    foods!!.results[i * 2].properties.label.rich_text[0].plain_text,
-                                    foods!!.results[i * 2].properties.image.url.toString(),
+                                    foodArr[i * 2].label,
+                                    foodArr[i * 2].img,
                                     Modifier.weight(1f)
                                 )
-                                Spacer(modifier = Modifier.width(17.dp))
-                                if (i * 2 + 1 < foods!!.results.size) {
+                                if (i * 2 + 1 < foodArr.size) {
+                                    Spacer(modifier = Modifier.width(17.dp))
                                     Food_Card(
-                                        foods!!.results[i * 2 + 1].properties.label.rich_text[0].plain_text,
-                                        foods!!.results[i * 2 + 1].properties.image.url,
+                                        foodArr[i * 2 + 1].label,
+                                        foodArr[i * 2 + 1].img,
                                         Modifier.weight(1f)
                                     )
                                 }
@@ -261,8 +321,10 @@ class MarketActivity : ComponentActivity() {
             Text(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp),
+                    .padding(top = 8.dp, start=10.dp, end=10.dp),
                 text = label,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 15.sp,
                 textAlign = TextAlign.Center
@@ -271,46 +333,49 @@ class MarketActivity : ComponentActivity() {
     }
 
     @Composable
-    fun Favourite(){
-        var favourites = getFavourites()
-        if (favourites == null){
-
-        }
-        else{
-            Column(
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .fillMaxWidth()
-                    .padding(bottom = 60.dp)
-            ){
-                for(foodId in favourites){
-                    var item = getItemData(foodId)
-                    if (item != null) {
-                        Favourite_Card(item[0], item[1])
+    fun Favourite(foods: Map<String, Food>?, favourite: Set<String>?){
+        Column(
+            modifier = Modifier
+                .padding(top=17.dp, bottom=63.dp)
+                .fillMaxSize()
+        ) {
+            if (foods == null || favourite == null) {
+                LoadingGif()
+            } else {
+                LazyColumn(
+                    modifier = Modifier.padding(start = 17.dp, end = 17.dp, bottom = 46.dp)
+                ) {
+                    val iter = favourite.iterator()
+                    items(ceil(favourite!!.size.toDouble() / 2).toInt()) { i ->
+                        var food_id = iter.next()
+                        Log.d("MEEEE", food_id)
+                        Row {
+                            Food_Card(
+                                foods[food_id]!!.label,
+                                foods[food_id]!!.img,
+                                Modifier.weight(1f)
+                            )
+                            if (iter.hasNext()) {
+                                food_id = iter.next()
+                                Spacer(modifier = Modifier.width(17.dp))
+                                Food_Card(
+                                    foods[food_id]!!.label,
+                                    foods[food_id]!!.img,
+                                    Modifier.weight(1f)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(17.dp))
                     }
                 }
             }
         }
     }
 
-    @Composable
-    fun Favourite_Card(label: String, url:String){
-        Text(
-            text = label,
-            fontSize = 20.sp,
-        )
-        Image(
-            painter = if(url != "") rememberAsyncImagePainter(url) else painterResource(id = R.drawable.cart),
-            contentDescription = null,
-            modifier = Modifier.size(128.dp)
-        )
-        Spacer(modifier = Modifier.height(30.dp))
-    }
-
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun Search(){
-        var text = remember { mutableStateOf("") }
+        val text = remember { mutableStateOf("") }
         TextField(
             modifier = Modifier
                 .fillMaxWidth()
@@ -344,7 +409,7 @@ class MarketActivity : ComponentActivity() {
         Image(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 10.dp, start = 17.dp, end = 17.dp),
+                .padding(bottom = 17.dp),
             painter = painterResource(id = R.drawable.poster),
             contentScale = ContentScale.FillWidth,
             alignment = Alignment.Center,
@@ -352,13 +417,29 @@ class MarketActivity : ComponentActivity() {
         )
     }
 
-    private fun getFavourites(): MutableList<String>? {
-        var favourites = mutableListOf<String>()
-        return null
-    }
-
-    private fun getItemData(foodId: String): MutableList<String>? {
-        return null
+    @Composable
+    fun LoadingGif(){
+        val imageLoader = ImageLoader.Builder(this)
+            .components{
+                if(Build.VERSION.SDK_INT >= 28){
+                    add(ImageDecoderDecoder.Factory())
+                }
+                else{
+                    add(GifDecoder.Factory())
+                }
+            }
+            .build()
+        val painter = rememberAsyncImagePainter(
+            ImageRequest.Builder(this).data(R.drawable.loading).build(), imageLoader=imageLoader
+        )
+        Image(
+            modifier = Modifier
+                .fillMaxWidth()
+                .size(60.dp),
+            painter=painter,
+            contentDescription = null,
+            contentScale = ContentScale.Fit
+        )
     }
 }
 
