@@ -3,6 +3,7 @@ package com.example.bigcart
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -30,6 +31,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
@@ -111,7 +113,7 @@ class MarketActivity : ComponentActivity() {
                         state = pagerState
                     ) {
                         when (it) {
-                            0 -> {Home(foods)}
+                            0 -> {Home(foods, favourite)}
                             1 -> {Profile(auth)}
                             2 -> {Favourite(foods, favourite)}
                         }
@@ -244,7 +246,7 @@ class MarketActivity : ComponentActivity() {
     }
 
     @Composable
-    fun Home(foods: Map<String, Food>?) {
+    fun Home(foods: Map<String, Food>?, favourite: Set<String>?) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -255,7 +257,7 @@ class MarketActivity : ComponentActivity() {
                     .padding(top = 10.dp, start = 17.dp, end = 17.dp, bottom = 46.dp)
                     .fillMaxSize()
             ){
-                if (foods == null) {
+                if (foods == null || favourite == null) {
                     Poster()
                     LoadingGif()
                 } else {
@@ -263,19 +265,23 @@ class MarketActivity : ComponentActivity() {
                         items(1){
                             Poster()
                         }
-                        val foodArr = foods!!.values.toList()
-                        items(ceil(foodArr!!.size.toDouble() / 2).toInt()) { i ->
+                        val keyArr = foods.keys.toList()
+                        items(ceil(keyArr.size.toDouble() / 2).toInt()) { i ->
                             Row{
                                 Food_Card(
-                                    foodArr[i * 2].label,
-                                    foodArr[i * 2].img,
+                                    foods[keyArr[i * 2]]!!.label,
+                                    foods[keyArr[i * 2]]!!.img,
+                                    favourite.contains(keyArr[i * 2]),
+                                    foods[keyArr[i * 2]]!!.price,
                                     Modifier.weight(1f)
                                 )
-                                if (i * 2 + 1 < foodArr.size) {
+                                if (i * 2 + 1 < keyArr.size) {
                                     Spacer(modifier = Modifier.width(17.dp))
                                     Food_Card(
-                                        foodArr[i * 2 + 1].label,
-                                        foodArr[i * 2 + 1].img,
+                                        foods[keyArr[i * 2 + 1]]!!.label,
+                                        foods[keyArr[i * 2 + 1]]!!.img,
+                                        favourite.contains(keyArr[i * 2 + 1]),
+                                        foods[keyArr[i * 2 + 1]]!!.price,
                                         Modifier.weight(1f)
                                     )
                                 }
@@ -295,7 +301,7 @@ class MarketActivity : ComponentActivity() {
     }
 
     @Composable
-    fun Food_Card(label: String, image: String?, modifier: Modifier = Modifier) {
+    fun Food_Card(label: String, image: String?, favourite: Boolean = true, price: Double, modifier: Modifier = Modifier) {
         val painter = rememberAsyncImagePainter(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(image)
@@ -310,16 +316,24 @@ class MarketActivity : ComponentActivity() {
             colors = CardDefaults.cardColors(
                 containerColor = Color.White,
             ),
-            border = BorderStroke(1.dp, Color.Black),
             shape = RoundedCornerShape(5.dp)
         ) {
+            Icon(
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(top=9.dp, end=9.dp)
+                    .size(25.dp),
+                imageVector = Icons.Filled.Favorite,
+                contentDescription = null,
+                tint = if (favourite!!) Color(0xFF6CC51D) else Color(0xFF868889)
+            )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 21.dp, start = 48.dp, end = 48.dp),
-                contentAlignment = Alignment.Center
+                    .padding(start = 48.dp, end = 48.dp),
             ){
                 Image(
+                    alignment = Alignment.Center,
                     painter = if (painter.state is AsyncImagePainter.State.Error) painterResource(id = R.drawable.cart) else painter,
                     contentDescription = null,
                     contentScale = ContentScale.Fit
@@ -328,7 +342,17 @@ class MarketActivity : ComponentActivity() {
             Text(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp, start=10.dp, end=10.dp),
+                    .padding(top = 8.dp),
+                text = "$$price",
+                fontWeight = FontWeight.Medium,
+                fontSize = 15.sp,
+                color = Color(0xFF6CC51D),
+                textAlign = TextAlign.Center
+            )
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 10.dp, end = 10.dp),
                 text = label,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -343,7 +367,7 @@ class MarketActivity : ComponentActivity() {
     fun Favourite(foods: Map<String, Food>?, favourite: Set<String>?){
         Column(
             modifier = Modifier
-                .padding(top=17.dp, bottom=63.dp)
+                .padding(top = 17.dp, bottom = 63.dp)
                 .fillMaxSize()
         ) {
             if (foods == null || favourite == null) {
@@ -359,6 +383,8 @@ class MarketActivity : ComponentActivity() {
                             Food_Card(
                                 foods[food_id]!!.label,
                                 foods[food_id]!!.img,
+                                true,
+                                foods[food_id]!!.price,
                                 Modifier.weight(1f)
                             )
                             if (iter.hasNext()) {
@@ -367,6 +393,8 @@ class MarketActivity : ComponentActivity() {
                                 Food_Card(
                                     foods[food_id]!!.label,
                                     foods[food_id]!!.img,
+                                    true,
+                                    foods[food_id]!!.price,
                                     Modifier.weight(1f)
                                 )
                             }
