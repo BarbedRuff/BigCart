@@ -31,13 +31,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Minimize
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.PlusOne
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -50,6 +55,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -57,8 +63,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -89,12 +97,14 @@ import kotlinx.coroutines.launch
 class MarketActivity : ComponentActivity() {
     var auth: FirebaseAuth = Firebase.auth
     private var token: String? = null
+    lateinit var cart: MutableMap<String, Int>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val foodView: FoodViewModel by this.viewModels()
         val favouriteView: FavouriteViewModel by this.viewModels()
         token = this.resources.getString(R.string.token)
         setContent {
+            cart = remember { mutableStateMapOf() }
             foodView.fetchFood(token!!)
             favouriteView.fetchFavourite(auth.uid.toString(), token!!)
             val foods by foodView.food.observeAsState()
@@ -364,7 +374,7 @@ class MarketActivity : ComponentActivity() {
             Text(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 10.dp, end = 10.dp),
+                    .padding(start = 10.dp, end = 10.dp, bottom = 15.dp),
                 text = label,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -372,6 +382,99 @@ class MarketActivity : ComponentActivity() {
                 fontSize = 15.sp,
                 textAlign = TextAlign.Center
             )
+            Spacer(
+                modifier = Modifier
+                    .background(Color(0xFFEBEBEB))
+                    .fillMaxWidth()
+                    .height(1.dp)
+            )
+            if(cart[foodId] == null || cart[foodId] == 0){
+                Button(
+                    onClick = {
+                        cart[foodId] = 1
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    colors = ButtonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Black,
+                        disabledContainerColor = Color.White,
+                        disabledContentColor = Color.Black),
+                    shape = RectangleShape
+                ){
+                    Row(
+                        modifier=Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ){
+                        Icon(
+                            modifier=Modifier
+                                .size(25.dp)
+                                .padding(end=9.dp),
+                            imageVector = Icons.Outlined.ShoppingCart,
+                            contentDescription = null,
+                            tint = Color(0xFF6CC51D)
+                        )
+                        Text(
+                            text="Add to cart",
+                            color = Color.Black,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 15.sp
+                        )
+                    }
+                }
+            }
+            else{
+                Row(
+                    modifier=Modifier.fillMaxWidth().padding(vertical = 11.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    IconButton(
+                        modifier=Modifier
+                            .size(25.dp)
+                            .padding(start=19.dp)
+                            .weight(0.25f)
+                            .fillMaxSize(),
+                        onClick = {
+                            cart[foodId] = cart[foodId]!! - 1
+                            if(cart[foodId] == 0){
+                                cart.remove(foodId)
+                            }
+                        }
+                    ){
+                        Icon(
+                            imageVector = Icons.Filled.Remove,
+                            contentDescription = null,
+                            tint = Color(0xFF6CC51D)
+                        )
+                    }
+                    Text(
+                        modifier = Modifier.weight(0.5f),
+                        text=cart[foodId].toString(),
+                        color = Color.Black,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 15.sp
+                    )
+                    IconButton(
+                        modifier=Modifier
+                            .size(25.dp)
+                            .padding(end=19.dp)
+                            .weight(0.25f)
+                            .fillMaxSize(),
+                        onClick = {
+                            cart[foodId] = cart[foodId]!! + 1
+                        }
+                    ){
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = null,
+                            tint = Color(0xFF6CC51D)
+                        )
+                    }
+                }
+            }
         }
     }
 
