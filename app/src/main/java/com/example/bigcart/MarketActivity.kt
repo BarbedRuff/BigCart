@@ -113,9 +113,9 @@ class MarketActivity : ComponentActivity() {
                         state = pagerState
                     ) {
                         when (it) {
-                            0 -> {Home(foods, favourite)}
+                            0 -> {Home(foods, favourite, favouriteView)}
                             1 -> {Profile(auth)}
-                            2 -> {Favourite(foods, favourite)}
+                            2 -> {Favourite(foods, favourite, favouriteView)}
                         }
                     }
                     Row(
@@ -196,7 +196,6 @@ class MarketActivity : ComponentActivity() {
                         .fillMaxWidth()
                         .background(Color.White)
                 )
-//                if(auth.currentUser.photoUrl != )
                 Image(
                     modifier = Modifier
                         .padding(top = 33.dp)
@@ -246,7 +245,7 @@ class MarketActivity : ComponentActivity() {
     }
 
     @Composable
-    fun Home(foods: Map<String, Food>?, favourite: Set<String>?) {
+    fun Home(foods: Map<String, Food>?, favourite: MutableSet<String>?, favoriteView: FavouriteViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -269,19 +268,21 @@ class MarketActivity : ComponentActivity() {
                         items(ceil(keyArr.size.toDouble() / 2).toInt()) { i ->
                             Row{
                                 Food_Card(
+                                    keyArr[i * 2],
                                     foods[keyArr[i * 2]]!!.label,
                                     foods[keyArr[i * 2]]!!.img,
-                                    favourite.contains(keyArr[i * 2]),
                                     foods[keyArr[i * 2]]!!.price,
+                                    favoriteView,
                                     Modifier.weight(1f)
                                 )
                                 if (i * 2 + 1 < keyArr.size) {
                                     Spacer(modifier = Modifier.width(17.dp))
                                     Food_Card(
+                                        keyArr[i * 2 + 1],
                                         foods[keyArr[i * 2 + 1]]!!.label,
                                         foods[keyArr[i * 2 + 1]]!!.img,
-                                        favourite.contains(keyArr[i * 2 + 1]),
                                         foods[keyArr[i * 2 + 1]]!!.price,
+                                        favoriteView,
                                         Modifier.weight(1f)
                                     )
                                 }
@@ -301,7 +302,7 @@ class MarketActivity : ComponentActivity() {
     }
 
     @Composable
-    fun Food_Card(label: String, image: String?, favourite: Boolean = true, price: Double, modifier: Modifier = Modifier) {
+    fun Food_Card(foodId: String, label: String, image: String?, price: Double, favoriteView: FavouriteViewModel,  modifier: Modifier = Modifier) {
         val painter = rememberAsyncImagePainter(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(image)
@@ -318,15 +319,26 @@ class MarketActivity : ComponentActivity() {
             ),
             shape = RoundedCornerShape(5.dp)
         ) {
-            Icon(
+            IconButton(
                 modifier = Modifier
                     .align(Alignment.End)
                     .padding(top=9.dp, end=9.dp)
                     .size(25.dp),
-                imageVector = Icons.Filled.Favorite,
-                contentDescription = null,
-                tint = if (favourite!!) Color(0xFF6CC51D) else Color(0xFF868889)
-            )
+                onClick = {
+                    if(favoriteView.contains(foodId)){
+                        favoriteView.removeFavourite(foodId, token!!)
+                    }
+                    else{
+                        favoriteView.addFavourite(foodId, auth.uid.toString(), token!!)
+                    }
+                }
+            ){
+                Icon(
+                    imageVector = Icons.Filled.Favorite,
+                    contentDescription = null,
+                    tint = if (favoriteView.contains(foodId)) Color(0xFF6CC51D) else Color(0xFF868889)
+                )
+            }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -364,10 +376,10 @@ class MarketActivity : ComponentActivity() {
     }
 
     @Composable
-    fun Favourite(foods: Map<String, Food>?, favourite: Set<String>?){
+    fun Favourite(foods: Map<String, Food>?, favourite: MutableSet<String>?, favoriteView: FavouriteViewModel){
         Column(
             modifier = Modifier
-                .padding(top = 17.dp, bottom = 63.dp)
+                .padding(top = 17.dp)
                 .fillMaxSize()
         ) {
             if (foods == null || favourite == null) {
@@ -376,25 +388,27 @@ class MarketActivity : ComponentActivity() {
                 LazyColumn(
                     modifier = Modifier.padding(start = 17.dp, end = 17.dp, bottom = 46.dp)
                 ) {
-                    val iter = favourite.iterator()
-                    items(ceil(favourite!!.size.toDouble() / 2).toInt()) { i ->
-                        var food_id = iter.next()
+                    val favouriteList = favourite.toList()
+                    items(ceil(favourite.size.toDouble() / 2).toInt()) { i ->
                         Row {
+                            val food_id = favouriteList[i * 2]
                             Food_Card(
+                                food_id,
                                 foods[food_id]!!.label,
                                 foods[food_id]!!.img,
-                                true,
                                 foods[food_id]!!.price,
-                                Modifier.weight(1f)
+                                favoriteView,
+                                Modifier.weight(1f),
                             )
-                            if (iter.hasNext()) {
-                                food_id = iter.next()
+                            if (i * 2 + 1 < favouriteList.size) {
+                                val food_id = favouriteList[i * 2 + 1]
                                 Spacer(modifier = Modifier.width(17.dp))
                                 Food_Card(
+                                    food_id,
                                     foods[food_id]!!.label,
                                     foods[food_id]!!.img,
-                                    true,
                                     foods[food_id]!!.price,
+                                    favoriteView,
                                     Modifier.weight(1f)
                                 )
                             }
