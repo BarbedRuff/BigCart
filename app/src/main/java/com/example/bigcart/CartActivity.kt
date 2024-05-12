@@ -1,6 +1,5 @@
 package com.example.bigcart
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -38,9 +37,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
@@ -48,7 +45,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -68,6 +64,7 @@ import kotlin.math.ceil
 class CartActivity : ComponentActivity() {
     private var foods: MutableMap<String, Food>? = null
     private lateinit var cart: SnapshotStateMap<String, Int>
+    private var sendedCart = mutableMapOf<String, Int>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         foods = (intent.extras?.getSerializable("foods") as? MutableMap<String, Food>)
@@ -75,6 +72,7 @@ class CartActivity : ComponentActivity() {
             val initialCart =
                 intent.extras?.getSerializable("cart") as? MutableMap<String, Int> ?: mutableMapOf()
             cart = remember { mutableStateMapOf(*initialCart.toList().toTypedArray()) }
+            sendedCart = initialCart
             BigCartTheme {
                 Surface(
                     modifier = Modifier
@@ -104,7 +102,7 @@ class CartActivity : ComponentActivity() {
                                             foods!![foodId]!!.label,
                                             foods!![foodId]!!.img,
                                             foods!![foodId]!!.price,
-                                            Modifier.weight(0.5f)
+                                            Modifier.weight(1f)
                                         )
                                         if (i * 2 + 1 < cart.keys.toList().size) {
                                             foodId = cart.keys.toList()[i * 2 + 1]
@@ -114,7 +112,7 @@ class CartActivity : ComponentActivity() {
                                                 foods!![foodId]!!.label,
                                                 foods!![foodId]!!.img,
                                                 foods!![foodId]!!.price,
-                                                Modifier.weight(0.5f)
+                                                Modifier.weight(1f)
                                             )
                                         } else {
                                             Spacer(modifier = Modifier.width(17.dp))
@@ -135,7 +133,7 @@ class CartActivity : ComponentActivity() {
 
     override fun finish() {
         val intent = this.intent
-        intent.putExtra("cart", HashMap(cart))
+        intent.putExtra("cart", HashMap(sendedCart))
         setResult(RESULT_OK, intent)
         super.finish()
     }
@@ -286,6 +284,9 @@ class CartActivity : ComponentActivity() {
                         .fillMaxSize(),
                     onClick = {
                         cart[foodId] = if ((cart[foodId]!! - 1) > 0) cart[foodId]!! - 1 else 0
+                        sendedCart[foodId] = if ((sendedCart[foodId]!! - 1) > 0) sendedCart[foodId]!! - 1 else 0
+                        if(cart[foodId] == 0)
+                            cart.remove(foodId)
                     }
                 ) {
                     Icon(
@@ -308,6 +309,7 @@ class CartActivity : ComponentActivity() {
                     .weight(0.25f)
                     .fillMaxSize(), onClick = {
                     cart[foodId] = cart[foodId]!! + 1
+                    sendedCart[foodId] = sendedCart[foodId]!! + 1
                 }
                 ) {
                     Icon(

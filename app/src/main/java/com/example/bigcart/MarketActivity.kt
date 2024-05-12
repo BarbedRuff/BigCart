@@ -95,7 +95,7 @@ class MarketActivity : ComponentActivity() {
     private var auth: FirebaseAuth = Firebase.auth
     private var token: String? = null
     private lateinit var cart: MutableMap<String, Int>
-    private val requestCode = -1
+    private val requestC = 1
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val foodView: FoodViewModel by this.viewModels()
@@ -191,7 +191,7 @@ class MarketActivity : ComponentActivity() {
                                                 if (foods != null) HashMap(foods) else null
                                             )
                                         },
-                                    requestCode
+                                    requestC
                                 )
                             }
                         )
@@ -204,10 +204,11 @@ class MarketActivity : ComponentActivity() {
     @Deprecated("This method has been deprecated in favor of using the Activity Result API\n      which brings increased type safety via an {@link ActivityResultContract} and the prebuilt\n      contracts for common intents available in\n      {@link androidx.activity.result.contract.ActivityResultContracts}, provides hooks for\n      testing, and allow receiving results in separate, testable classes independent from your\n      activity. Use\n      {@link #registerForActivityResult(ActivityResultContract, ActivityResultCallback)}\n      with the appropriate {@link ActivityResultContract} and handling the result in the\n      {@link ActivityResultCallback#onActivityResult(Object) callback}.")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        Log.d("Cartt", "Exit")
+        Log.d("TestMePls", "Exit1")
         if (resultCode == RESULT_OK) {
+            Log.d("TestMePls", "Exit")
             when (requestCode) {
-                this.requestCode -> {
+                requestC -> {
                     var newCart =
                         (data!!.extras?.getSerializable("cart") as? MutableMap<String, Int>)!!
                     for (i in newCart) {
