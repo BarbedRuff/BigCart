@@ -1,11 +1,17 @@
 package com.example.bigcart.food
+import android.os.Parcelable
+import androidx.versionedparcelable.ParcelField
 import com.google.gson.annotations.SerializedName
+import java.io.Serializable
 
 data class Food(
+    @SerializedName("label")
     val label: String,
+    @SerializedName("img")
     val img: String?,
+    @SerializedName("price")
     val price: Double
-)
+): Serializable
 
 data class FoodResponse(
     @SerializedName("developer_survey")

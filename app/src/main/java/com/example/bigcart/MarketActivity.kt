@@ -7,7 +7,6 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -37,9 +36,7 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Minimize
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.PlusOne
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
@@ -66,7 +63,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -76,7 +72,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlin.math.ceil
 import coil.ImageLoader
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
@@ -91,13 +86,16 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.launch
+import kotlin.math.ceil
 
 
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalFoundationApi::class)
 class MarketActivity : ComponentActivity() {
-    var auth: FirebaseAuth = Firebase.auth
+    private var auth: FirebaseAuth = Firebase.auth
     private var token: String? = null
-    lateinit var cart: MutableMap<String, Int>
+    private lateinit var cart: MutableMap<String, Int>
+    private val requestCode = -1
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val foodView: FoodViewModel by this.viewModels()
@@ -119,13 +117,21 @@ class MarketActivity : ComponentActivity() {
                     val coroutineScope = rememberCoroutineScope()
                     HorizontalPager(
                         modifier = Modifier
-                            .wrapContentHeight(align=Alignment.Top),
+                            .wrapContentHeight(align = Alignment.Top),
                         state = pagerState
                     ) {
                         when (it) {
-                            0 -> {Home(foods, favourite, favouriteView)}
-                            1 -> {Profile(auth)}
-                            2 -> {Favourite(foods, favourite, favouriteView)}
+                            0 -> {
+                                Home(foods, favourite, favouriteView)
+                            }
+
+                            1 -> {
+                                Profile(auth)
+                            }
+
+                            2 -> {
+                                Favourite(foods, favourite, favouriteView)
+                            }
                         }
                     }
                     Row(
@@ -134,7 +140,7 @@ class MarketActivity : ComponentActivity() {
                             .fillMaxWidth()
                             .background(Color.White),
                         horizontalArrangement = Arrangement.SpaceBetween
-                    ){
+                    ) {
                         CustomIconButton(
                             imageVector = Icons.Outlined.Home,
                             contentDescription = "Home",
@@ -143,7 +149,7 @@ class MarketActivity : ComponentActivity() {
                             tab = pagerState,
                             onClick = {
                                 coroutineScope.launch {
-                                    pagerState.animateScrollToPage( 0)
+                                    pagerState.animateScrollToPage(0)
                                 }
                             }
                         )
@@ -154,7 +160,7 @@ class MarketActivity : ComponentActivity() {
                             tab = pagerState,
                             onClick = {
                                 coroutineScope.launch {
-                                    pagerState.animateScrollToPage( 1)
+                                    pagerState.animateScrollToPage(1)
                                 }
                             }
                         )
@@ -165,7 +171,7 @@ class MarketActivity : ComponentActivity() {
                             tab = pagerState,
                             onClick = {
                                 coroutineScope.launch {
-                                    pagerState.animateScrollToPage( 2)
+                                    pagerState.animateScrollToPage(2)
                                 }
                             }
                         )
@@ -176,11 +182,40 @@ class MarketActivity : ComponentActivity() {
                             paddingEnd = 10.dp,
                             tab = pagerState,
                             onClick = {
-                                startActivity(
+                                startActivityForResult(
                                     Intent(this@MarketActivity, CartActivity::class.java)
+                                        .also {
+                                            it.putExtra("cart", HashMap(cart))
+                                            it.putExtra(
+                                                "foods",
+                                                if (foods != null) HashMap(foods) else null
+                                            )
+                                        },
+                                    requestCode
                                 )
                             }
                         )
+                    }
+                }
+            }
+        }
+    }
+
+    @Deprecated("This method has been deprecated in favor of using the Activity Result API\n      which brings increased type safety via an {@link ActivityResultContract} and the prebuilt\n      contracts for common intents available in\n      {@link androidx.activity.result.contract.ActivityResultContracts}, provides hooks for\n      testing, and allow receiving results in separate, testable classes independent from your\n      activity. Use\n      {@link #registerForActivityResult(ActivityResultContract, ActivityResultCallback)}\n      with the appropriate {@link ActivityResultContract} and handling the result in the\n      {@link ActivityResultCallback#onActivityResult(Object) callback}.")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        Log.d("Cartt", "Exit")
+        if (resultCode == RESULT_OK) {
+            when (requestCode) {
+                this.requestCode -> {
+                    var newCart =
+                        (data!!.extras?.getSerializable("cart") as? MutableMap<String, Int>)!!
+                    for (i in newCart) {
+                        if (i.value == 0) {
+                            cart.remove(i.key)
+                        } else {
+                            cart[i.key] = i.value
+                        }
                     }
                 }
             }
@@ -193,13 +228,13 @@ class MarketActivity : ComponentActivity() {
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFF4F5F9))
-        ){
+        ) {
             Box(
                 modifier = Modifier
                     .height(150.dp)
                     .fillMaxWidth()
                     .background(Color(0xFFF4F5F9))
-            ){
+            ) {
                 Box(
                     modifier = Modifier
                         .height(108.dp)
@@ -218,12 +253,12 @@ class MarketActivity : ComponentActivity() {
             }
             Button(onClick = {
                 auth.signOut()
-                Intent(applicationContext,MainActivity::class.java).also {
+                Intent(applicationContext, MainActivity::class.java).also {
                     startActivity(it)
                 }
                 finish()
             }) {
-                Text(text="Exit")
+                Text(text = "Exit")
             }
         }
     }
@@ -255,7 +290,11 @@ class MarketActivity : ComponentActivity() {
     }
 
     @Composable
-    fun Home(foods: Map<String, Food>?, favourite: MutableSet<String>?, favoriteView: FavouriteViewModel) {
+    fun Home(
+        foods: Map<String, Food>?,
+        favourite: MutableSet<String>?,
+        favoriteView: FavouriteViewModel
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -265,18 +304,18 @@ class MarketActivity : ComponentActivity() {
                 modifier = Modifier
                     .padding(top = 10.dp, start = 17.dp, end = 17.dp, bottom = 46.dp)
                     .fillMaxSize()
-            ){
+            ) {
                 if (foods == null || favourite == null) {
                     Poster()
                     LoadingGif()
                 } else {
                     LazyColumn {
-                        items(1){
+                        items(1) {
                             Poster()
                         }
                         val keyArr = foods.keys.toList()
                         items(ceil(keyArr.size.toDouble() / 2).toInt()) { i ->
-                            Row{
+                            Row {
                                 Food_Card(
                                     keyArr[i * 2],
                                     foods[keyArr[i * 2]]!!.label,
@@ -295,8 +334,7 @@ class MarketActivity : ComponentActivity() {
                                         favoriteView,
                                         Modifier.weight(1f)
                                     )
-                                }
-                                else{
+                                } else {
                                     Spacer(modifier = Modifier.width(17.dp))
                                     Box(
                                         modifier = Modifier.weight(1f)
@@ -312,7 +350,14 @@ class MarketActivity : ComponentActivity() {
     }
 
     @Composable
-    fun Food_Card(foodId: String, label: String, image: String?, price: Double, favoriteView: FavouriteViewModel,  modifier: Modifier = Modifier) {
+    fun Food_Card(
+        foodId: String,
+        label: String,
+        image: String?,
+        price: Double,
+        favoriteView: FavouriteViewModel,
+        modifier: Modifier = Modifier
+    ) {
         val painter = rememberAsyncImagePainter(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(image)
@@ -332,28 +377,29 @@ class MarketActivity : ComponentActivity() {
             IconButton(
                 modifier = Modifier
                     .align(Alignment.End)
-                    .padding(top=9.dp, end=9.dp)
+                    .padding(top = 9.dp, end = 9.dp)
                     .size(25.dp),
                 onClick = {
-                    if(favoriteView.contains(foodId)){
+                    if (favoriteView.contains(foodId)) {
                         favoriteView.removeFavourite(foodId, token!!)
-                    }
-                    else{
+                    } else {
                         favoriteView.addFavourite(foodId, auth.uid.toString(), token!!)
                     }
                 }
-            ){
+            ) {
                 Icon(
                     imageVector = Icons.Filled.Favorite,
                     contentDescription = null,
-                    tint = if (favoriteView.contains(foodId)) Color(0xFF6CC51D) else Color(0xFF868889)
+                    tint = if (favoriteView.contains(foodId)) Color(0xFF6CC51D) else Color(
+                        0xFF868889
+                    )
                 )
             }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 48.dp, end = 48.dp),
-            ){
+            ) {
                 Image(
                     alignment = Alignment.Center,
                     painter = if (painter.state is AsyncImagePainter.State.Error) painterResource(id = R.drawable.cart) else painter,
@@ -388,7 +434,7 @@ class MarketActivity : ComponentActivity() {
                     .fillMaxWidth()
                     .height(1.dp)
             )
-            if(cart[foodId] == null || cart[foodId] == 0){
+            if (cart[foodId] == null || cart[foodId] == 0) {
                 Button(
                     onClick = {
                         cart[foodId] = 1
@@ -399,50 +445,52 @@ class MarketActivity : ComponentActivity() {
                         containerColor = Color.White,
                         contentColor = Color.Black,
                         disabledContainerColor = Color.White,
-                        disabledContentColor = Color.Black),
+                        disabledContentColor = Color.Black
+                    ),
                     shape = RectangleShape
-                ){
+                ) {
                     Row(
-                        modifier=Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
-                    ){
+                    ) {
                         Icon(
-                            modifier=Modifier
+                            modifier = Modifier
                                 .size(25.dp)
-                                .padding(end=9.dp),
+                                .padding(end = 9.dp),
                             imageVector = Icons.Outlined.ShoppingCart,
                             contentDescription = null,
                             tint = Color(0xFF6CC51D)
                         )
                         Text(
-                            text="Add to cart",
+                            text = "Add to cart",
                             color = Color.Black,
                             fontWeight = FontWeight.Medium,
                             fontSize = 15.sp
                         )
                     }
                 }
-            }
-            else{
+            } else {
                 Row(
-                    modifier=Modifier.fillMaxWidth().padding(vertical = 11.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 11.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
-                ){
+                ) {
                     IconButton(
-                        modifier=Modifier
+                        modifier = Modifier
                             .size(25.dp)
-                            .padding(start=19.dp)
+                            .padding(start = 19.dp)
                             .weight(0.25f)
                             .fillMaxSize(),
                         onClick = {
                             cart[foodId] = cart[foodId]!! - 1
-                            if(cart[foodId] == 0){
+                            if (cart[foodId] == 0) {
                                 cart.remove(foodId)
                             }
                         }
-                    ){
+                    ) {
                         Icon(
                             imageVector = Icons.Filled.Remove,
                             contentDescription = null,
@@ -451,22 +499,22 @@ class MarketActivity : ComponentActivity() {
                     }
                     Text(
                         modifier = Modifier.weight(0.5f),
-                        text=cart[foodId].toString(),
+                        text = cart[foodId].toString(),
                         color = Color.Black,
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Medium,
                         fontSize = 15.sp
                     )
                     IconButton(
-                        modifier=Modifier
+                        modifier = Modifier
                             .size(25.dp)
-                            .padding(end=19.dp)
+                            .padding(end = 19.dp)
                             .weight(0.25f)
                             .fillMaxSize(),
                         onClick = {
                             cart[foodId] = cart[foodId]!! + 1
                         }
-                    ){
+                    ) {
                         Icon(
                             imageVector = Icons.Filled.Add,
                             contentDescription = null,
@@ -479,7 +527,11 @@ class MarketActivity : ComponentActivity() {
     }
 
     @Composable
-    fun Favourite(foods: Map<String, Food>?, favourite: MutableSet<String>?, favoriteView: FavouriteViewModel){
+    fun Favourite(
+        foods: Map<String, Food>?,
+        favourite: MutableSet<String>?,
+        favoriteView: FavouriteViewModel
+    ) {
         Column(
             modifier = Modifier
                 .padding(top = 17.dp)
@@ -494,28 +546,27 @@ class MarketActivity : ComponentActivity() {
                     val favouriteList = favourite.toList()
                     items(ceil(favourite.size.toDouble() / 2).toInt()) { i ->
                         Row {
-                            val food_id = favouriteList[i * 2]
+                            val foodId = favouriteList[i * 2]
                             Food_Card(
-                                food_id,
-                                foods[food_id]!!.label,
-                                foods[food_id]!!.img,
-                                foods[food_id]!!.price,
+                                foodId,
+                                foods[foodId]!!.label,
+                                foods[foodId]!!.img,
+                                foods[foodId]!!.price,
                                 favoriteView,
                                 Modifier.weight(1f),
                             )
                             if (i * 2 + 1 < favouriteList.size) {
-                                val food_id = favouriteList[i * 2 + 1]
+                                val foodId = favouriteList[i * 2 + 1]
                                 Spacer(modifier = Modifier.width(17.dp))
                                 Food_Card(
-                                    food_id,
-                                    foods[food_id]!!.label,
-                                    foods[food_id]!!.img,
-                                    foods[food_id]!!.price,
+                                    foodId,
+                                    foods[foodId]!!.label,
+                                    foods[foodId]!!.img,
+                                    foods[foodId]!!.price,
                                     favoriteView,
                                     Modifier.weight(1f)
                                 )
-                            }
-                            else{
+                            } else {
                                 Spacer(modifier = Modifier.width(17.dp))
                                 Box(
                                     modifier = Modifier.weight(1f)
@@ -531,7 +582,7 @@ class MarketActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun Search(){
+    fun Search() {
         val text = remember { mutableStateOf("") }
         TextField(
             modifier = Modifier
@@ -547,7 +598,13 @@ class MarketActivity : ComponentActivity() {
                 errorIndicatorColor = Color.Red,
                 cursorColor = Color.Black
             ),
-            leadingIcon = {Icon(imageVector = Icons.Filled.Search, "Search", tint = Color(0xFF868889))},
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Filled.Search,
+                    "Search",
+                    tint = Color(0xFF868889)
+                )
+            },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
             placeholder = {
                 Text(
@@ -562,7 +619,7 @@ class MarketActivity : ComponentActivity() {
     }
 
     @Composable
-    fun Poster(){
+    fun Poster() {
         Image(
             modifier = Modifier
                 .fillMaxWidth()
@@ -575,25 +632,24 @@ class MarketActivity : ComponentActivity() {
     }
 
     @Composable
-    fun LoadingGif(){
+    fun LoadingGif() {
         val imageLoader = ImageLoader.Builder(this)
-            .components{
-                if(Build.VERSION.SDK_INT >= 28){
+            .components {
+                if (Build.VERSION.SDK_INT >= 28) {
                     add(ImageDecoderDecoder.Factory())
-                }
-                else{
+                } else {
                     add(GifDecoder.Factory())
                 }
             }
             .build()
         val painter = rememberAsyncImagePainter(
-            ImageRequest.Builder(this).data(R.drawable.loading).build(), imageLoader=imageLoader
+            ImageRequest.Builder(this).data(R.drawable.loading).build(), imageLoader = imageLoader
         )
         Image(
             modifier = Modifier
                 .fillMaxWidth()
                 .size(60.dp),
-            painter=painter,
+            painter = painter,
             contentDescription = null,
             contentScale = ContentScale.Fit
         )
