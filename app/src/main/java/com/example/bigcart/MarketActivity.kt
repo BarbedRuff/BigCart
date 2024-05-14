@@ -37,7 +37,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Card
@@ -177,7 +177,7 @@ class MarketActivity : ComponentActivity() {
                             }
                         )
                         CustomIconButton(
-                            imageVector = Icons.Outlined.ShoppingCart,
+                            imageVector = Icons.Outlined.ShoppingBag,
                             contentDescription = "Cart",
                             index = 3,
                             paddingEnd = 10.dp,
@@ -464,7 +464,7 @@ class MarketActivity : ComponentActivity() {
                             modifier = Modifier
                                 .size(25.dp)
                                 .padding(end = 9.dp),
-                            imageVector = Icons.Outlined.ShoppingCart,
+                            imageVector = Icons.Outlined.ShoppingBag,
                             contentDescription = null,
                             tint = Color(0xFF6CC51D)
                         )

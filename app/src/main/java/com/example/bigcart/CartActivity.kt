@@ -28,7 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -226,7 +226,7 @@ class CartActivity : ComponentActivity() {
             Icon(
                 modifier = Modifier
                     .size(125.dp),
-                imageVector = Icons.Outlined.ShoppingCart,
+                imageVector = Icons.Outlined.ShoppingBag,
                 contentDescription = "Cart",
                 tint = Color(0xFF6CC51D)
             )
