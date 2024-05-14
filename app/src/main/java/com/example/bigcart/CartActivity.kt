@@ -1,5 +1,7 @@
 package com.example.bigcart
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -59,6 +61,7 @@ import coil.size.Size
 import com.example.bigcart.food.Food
 import com.example.bigcart.ui.theme.BigCartTheme
 import kotlin.math.ceil
+import kotlin.properties.Delegates
 
 class CartActivity : ComponentActivity() {
     private var foods: MutableMap<String, Food>? = null
@@ -88,24 +91,15 @@ class CartActivity : ComponentActivity() {
                             Empty()
                         }
                     } else {
-                        Column {
-                            Head()
-                            LazyColumn(
-                                modifier = Modifier.padding(top = 17.dp, start = 17.dp, end = 17.dp)
-                            ) {
-                                items(ceil(cart.keys.toList().size.toDouble() / 2).toInt()) { i ->
-                                    Row {
-                                        var foodId = cart.keys.toList()[i * 2]
-                                        Food_Card(
-                                            foodId,
-                                            foods!![foodId]!!.label,
-                                            foods!![foodId]!!.img,
-                                            foods!![foodId]!!.price,
-                                            Modifier.weight(1f)
-                                        )
-                                        if (i * 2 + 1 < cart.keys.toList().size) {
-                                            foodId = cart.keys.toList()[i * 2 + 1]
-                                            Spacer(modifier = Modifier.width(17.dp))
+                        Box {
+                            Column(modifier=Modifier.padding(bottom = 150.dp)){
+                                Head()
+                                LazyColumn(
+                                    modifier = Modifier.padding(top = 17.dp, start = 17.dp, end=17.dp)
+                                ) {
+                                    items(ceil(cart.keys.toList().size.toDouble() / 2).toInt()) { i ->
+                                        Row {
+                                            var foodId = cart.keys.toList()[i * 2]
                                             Food_Card(
                                                 foodId,
                                                 foods!![foodId]!!.label,
@@ -113,15 +107,68 @@ class CartActivity : ComponentActivity() {
                                                 foods!![foodId]!!.price,
                                                 Modifier.weight(1f)
                                             )
-                                        } else {
-                                            Spacer(modifier = Modifier.width(17.dp))
-                                            Box(
-                                                modifier = Modifier.weight(1f)
-                                            )
+                                            if (i * 2 + 1 < cart.keys.toList().size) {
+                                                foodId = cart.keys.toList()[i * 2 + 1]
+                                                Spacer(modifier = Modifier.width(17.dp))
+                                                Food_Card(
+                                                    foodId,
+                                                    foods!![foodId]!!.label,
+                                                    foods!![foodId]!!.img,
+                                                    foods!![foodId]!!.price,
+                                                    Modifier.weight(1f)
+                                                )
+                                            } else {
+                                                Spacer(modifier = Modifier.width(17.dp))
+                                                Box(
+                                                    modifier = Modifier.weight(1f)
+                                                )
+                                            }
                                         }
+                                        Spacer(modifier = Modifier.height(17.dp))
                                     }
-                                    Spacer(modifier = Modifier.height(17.dp))
                                 }
+                            }
+                            var totalPrice: Double = 0.toDouble()
+                            for(i in cart){
+                                totalPrice += (foods!![i.key]?.price ?: 0.toDouble()) * i.value
+                            }
+                            Column(
+                                modifier=Modifier
+                                    .fillMaxWidth()
+                                    .background(Color.White)
+                                    .align(Alignment.BottomCenter)
+                            ){
+                                Row(modifier=Modifier.padding(start=17.dp, top=10.dp, end=17.dp)){
+                                    Text(
+                                        modifier=Modifier.weight(1f),
+                                        text="Total",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 18.sp
+                                    )
+                                    Text(
+                                        text="$${String.format("%.2f", totalPrice)}",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 18.sp
+                                    )
+                                }
+                                GradientButton(
+                                    text="Checkout",
+                                    {
+                                        startActivity(
+                                            Intent(Intent.ACTION_VIEW).also{
+                                                it.setData(Uri.parse("https://github.com/BarbedRuff"))
+                                            }
+                                        )
+                                    },
+                                    Modifier
+                                        .wrapContentHeight(Alignment.Bottom)
+                                        .padding(start = 16.dp, end = 16.dp, top=16.dp, bottom = 36.dp)
+                                        .shadow(
+                                            spotColor = Color(0xFF6CC51D),
+                                            shape = RoundedCornerShape(5.dp),
+                                            elevation = 10.dp
+                                        )
+                                )
                             }
                         }
                     }
@@ -201,7 +248,18 @@ class CartActivity : ComponentActivity() {
                 fontWeight = FontWeight.Medium,
             )
         }
-        GradientButton()
+        GradientButton(
+            text="Start shopping",
+            { finish() },
+            Modifier
+                .wrapContentHeight(Alignment.Bottom)
+                .padding(start = 16.dp, end = 16.dp, bottom = 57.dp)
+                .shadow(
+                    spotColor = Color(0xFF6CC51D),
+                    shape = RoundedCornerShape(5.dp),
+                    elevation = 10.dp
+                )
+            )
     }
 
     @Composable
@@ -284,8 +342,9 @@ class CartActivity : ComponentActivity() {
                         .fillMaxSize(),
                     onClick = {
                         cart[foodId] = if ((cart[foodId]!! - 1) > 0) cart[foodId]!! - 1 else 0
-                        sendedCart[foodId] = if ((sendedCart[foodId]!! - 1) > 0) sendedCart[foodId]!! - 1 else 0
-                        if(cart[foodId] == 0)
+                        sendedCart[foodId] =
+                            if ((sendedCart[foodId]!! - 1) > 0) sendedCart[foodId]!! - 1 else 0
+                        if (cart[foodId] == 0)
                             cart.remove(foodId)
                     }
                 ) {
@@ -323,19 +382,10 @@ class CartActivity : ComponentActivity() {
     }
 
     @Composable
-    fun GradientButton() {
+    fun GradientButton(text: String, onClick: () -> Unit, modifier: Modifier) {
         Button(
-            onClick = {
-                finish()
-            },
-            modifier = Modifier
-                .wrapContentHeight(Alignment.Bottom)
-                .padding(start = 16.dp, end = 16.dp, bottom = 57.dp)
-                .shadow(
-                    spotColor = Color(0xFF6CC51D),
-                    shape = RoundedCornerShape(5.dp),
-                    elevation = 10.dp
-                ),
+            onClick = onClick,
+            modifier = modifier,
             colors = ButtonDefaults.buttonColors(Color.Transparent),
             contentPadding = PaddingValues(),
             shape = RoundedCornerShape(5.dp)
@@ -353,7 +403,7 @@ class CartActivity : ComponentActivity() {
                     modifier = Modifier
                         .padding(vertical = 19.dp)
                         .fillMaxWidth(),
-                    text = "Start shopping",
+                    text = text,
                     fontSize = 17.sp,
                     textAlign = TextAlign.Center
                 )
