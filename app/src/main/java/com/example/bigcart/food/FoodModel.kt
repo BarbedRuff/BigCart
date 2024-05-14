@@ -1,6 +1,4 @@
 package com.example.bigcart.food
-import android.os.Parcelable
-import androidx.versionedparcelable.ParcelField
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 

@@ -61,7 +61,6 @@ import coil.size.Size
 import com.example.bigcart.food.Food
 import com.example.bigcart.ui.theme.BigCartTheme
 import kotlin.math.ceil
-import kotlin.properties.Delegates
 
 class CartActivity : ComponentActivity() {
     private var foods: MutableMap<String, Food>? = null

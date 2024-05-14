@@ -90,7 +90,6 @@ import kotlinx.coroutines.launch
 import kotlin.math.ceil
 
 
-@Suppress("DEPRECATION")
 @OptIn(ExperimentalFoundationApi::class)
 class MarketActivity : ComponentActivity() {
     private var auth: FirebaseAuth = Firebase.auth
