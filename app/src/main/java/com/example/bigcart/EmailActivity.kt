@@ -6,7 +6,7 @@ package com.example.bigcart
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -28,7 +28,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,14 +50,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.view.WindowCompat
 import com.example.bigcart.ui.theme.BigCartTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.PhoneAuthOptions
-import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.auth.auth
-import java.util.concurrent.TimeUnit
 
 class EmailActivity : ComponentActivity() {
     var auth: FirebaseAuth = Firebase.auth
@@ -177,7 +172,11 @@ class EmailActivity : ComponentActivity() {
                 Firebase.auth.sendPasswordResetEmail(email.value)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
-                            Log.d("Meow", "Email sent.")
+                            Toast.makeText(
+                                baseContext,
+                                "Check your email.",
+                                Toast.LENGTH_LONG,
+                            ).show()
                         }
                     }
             },

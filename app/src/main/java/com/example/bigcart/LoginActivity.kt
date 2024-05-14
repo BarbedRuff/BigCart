@@ -2,7 +2,7 @@ package com.example.bigcart
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -53,7 +53,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.view.WindowCompat
 import com.example.bigcart.ui.theme.BigCartTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -261,7 +260,11 @@ class LoginActivity : ComponentActivity() {
                                     startActivity(it)
                                 }
                             } else {
-                                Log.d("Meow", "createUserWithEmail:failure", task.exception)
+                                Toast.makeText(
+                                    baseContext,
+                                    "Authentication failed.",
+                                    Toast.LENGTH_LONG,
+                                ).show()
                             }
                         }
                 }

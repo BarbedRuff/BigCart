@@ -28,7 +28,6 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -146,6 +145,7 @@ class CartActivity : ComponentActivity() {
                 .background(Color.White),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+
             Icon(
                 modifier = Modifier
                     .clickable {
@@ -154,7 +154,7 @@ class CartActivity : ComponentActivity() {
                     .padding(start = 17.dp, top = 15.dp, bottom = 15.dp),
                 imageVector = Icons.Filled.ArrowBack,
                 contentDescription = "Back",
-                tint = Color.Black
+                tint = Color.Black,
             )
             Text(
                 modifier = Modifier
