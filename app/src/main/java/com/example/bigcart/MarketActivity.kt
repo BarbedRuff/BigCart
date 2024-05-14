@@ -50,6 +50,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateMapOf
@@ -252,13 +253,16 @@ class MarketActivity : ComponentActivity() {
                     contentDescription = "profile",
                 )
             }
-            Button(onClick = {
-                auth.signOut()
-                Intent(applicationContext, MainActivity::class.java).also {
-                    startActivity(it)
-                }
-                finish()
-            }) {
+            Button(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally),
+                onClick = {
+                    auth.signOut()
+                    Intent(applicationContext, MainActivity::class.java).also {
+                        startActivity(it)
+                    }
+                    finish()
+                }) {
                 Text(text = "Exit")
             }
         }
@@ -296,11 +300,12 @@ class MarketActivity : ComponentActivity() {
         favourite: MutableSet<String>?,
         favoriteView: FavouriteViewModel
     ) {
+        val text = remember { mutableStateOf("") }
         Column(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            Search()
+            Search(text)
             Column(
                 modifier = Modifier
                     .padding(top = 10.dp, start = 17.dp, end = 17.dp, bottom = 46.dp)
@@ -314,7 +319,7 @@ class MarketActivity : ComponentActivity() {
                         items(1) {
                             Poster()
                         }
-                        val keyArr = foods.keys.toList()
+                        val keyArr = foods.keys.toList().filter{ foods[it]?.label?.contains(text.value, true) ?: false }
                         items(ceil(keyArr.size.toDouble() / 2).toInt()) { i ->
                             Row {
                                 Food_Card(
@@ -583,8 +588,7 @@ class MarketActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun Search() {
-        val text = remember { mutableStateOf("") }
+    fun Search(text: MutableState<String>) {
         TextField(
             modifier = Modifier
                 .fillMaxWidth()
