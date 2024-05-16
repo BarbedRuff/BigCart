@@ -13,6 +13,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,12 +35,14 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -60,6 +63,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -86,6 +91,7 @@ import com.example.bigcart.ui.theme.BigCartTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.ceil
 
@@ -126,9 +132,8 @@ class MarketActivity : ComponentActivity() {
                             }
 
                             1 -> {
-                                Profile(auth)
+                                Profile(auth, coroutineScope, pagerState)
                             }
-
                             2 -> {
                                 Favourite(foods, favourite, favouriteView)
                             }
@@ -224,7 +229,7 @@ class MarketActivity : ComponentActivity() {
     }
 
     @Composable
-    fun Profile(auth: FirebaseAuth) {
+    fun Profile(auth: FirebaseAuth, coroutineScope: CoroutineScope, pagerState: PagerState) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -242,28 +247,57 @@ class MarketActivity : ComponentActivity() {
                         .fillMaxWidth()
                         .background(Color.White)
                 )
-                Image(
+                Icon(
                     modifier = Modifier
                         .padding(top = 33.dp)
                         .align(Alignment.Center)
-                        .size(114.dp)
-                        .clip(CircleShape),
-                    painter = painterResource(id = R.drawable.cart),
-                    contentDescription = "profile",
+                        .size(114.dp),
+                    imageVector = Icons.Outlined.AccountCircle,
+                    contentDescription = null,
+                    tint = Color(0xFF6CC51D)
                 )
             }
-            Button(
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally),
-                onClick = {
+            Text(
+                modifier=Modifier
+                    .fillMaxWidth(),
+                text="${auth.currentUser?.email}",
+                fontSize = 20.sp,
+                textAlign = TextAlign.Center
+            )
+            GradientButton(
+                text="My Favorites",
+                {
+                    coroutineScope.launch {
+                        pagerState.animateScrollToPage(2)
+                    }
+                },
+                Modifier
+                    .wrapContentHeight(Alignment.Bottom)
+                    .padding(16.dp)
+                    .shadow(
+                        spotColor = Color(0xFF6CC51D),
+                        shape = RoundedCornerShape(5.dp),
+                        elevation = 10.dp
+                    )
+            )
+            GradientButton(
+                text="Exit",
+                {
                     auth.signOut()
                     Intent(applicationContext, MainActivity::class.java).also {
                         startActivity(it)
                     }
                     finish()
-                }) {
-                Text(text = "Exit")
-            }
+                },
+                Modifier
+                    .wrapContentHeight(Alignment.Bottom)
+                    .padding(start=16.dp, end=16.dp)
+                    .shadow(
+                        spotColor = Color(0xFF6CC51D),
+                        shape = RoundedCornerShape(5.dp),
+                        elevation = 10.dp
+                    )
+            )
         }
     }
 
@@ -657,6 +691,36 @@ class MarketActivity : ComponentActivity() {
             contentDescription = null,
             contentScale = ContentScale.Fit
         )
+    }
+
+    @Composable
+    fun GradientButton(text: String, onClick: () -> Unit, modifier: Modifier) {
+        Button(
+            onClick = onClick,
+            modifier = modifier,
+            colors = ButtonDefaults.buttonColors(Color.Transparent),
+            contentPadding = PaddingValues(),
+            shape = RoundedCornerShape(5.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.horizontalGradient(
+                            listOf(Color(0xFFAEDC81), Color(0xFF6CC51D))
+                        )
+                    )
+            ) {
+                Text(
+                    modifier = Modifier
+                        .padding(vertical = 19.dp)
+                        .fillMaxWidth(),
+                    text = text,
+                    fontSize = 17.sp,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
     }
 }
 
